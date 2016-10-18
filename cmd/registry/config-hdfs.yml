@@ -1,0 +1,31 @@
+version: 0.1
+log:
+  level: debug
+  fields:
+    service: registry
+storage:
+  delete:
+    enabled: true
+  hdfs:
+    hdfsrootdirectory: /tmp/docker-registry-hdfs
+    hdfsnamenode: yprod128.l42scl.hortonworks.com:9000
+    hdfsuser: root
+    directoryumask: 0755
+http:
+  addr: :6000
+  secret: hdfsstoragedriver
+  debug:
+    addr: :6001
+  headers:
+    X-Content-Type-Options: [nosniff]
+health:
+  storagedriver:
+    enabled: false
+    interval: 10s
+    threshold: 3
+maintenance:
+    uploadpurging:
+      enabled: true
+      age: 10m
+      interval: 1m
+      dryrun: false
