@@ -17,8 +17,7 @@ import (
 )
 
 // Set the version
-//type Version string
-//const CurrentVersion Version = "0.1"
+const CurrentVersion Version = "0.1"
 
 // Default values for the driverParameters if not set by the user.
 const (
@@ -29,18 +28,6 @@ const (
 	defaultHdfsUser			= "hdfs"
 	defaultDirectoryUmask		= 0755
 )
-
-
-
-
-
-
-
-
-
-
-
-
 
 //
 // Implement factory.StorageDriverFactory, register the driver, and validate
@@ -151,23 +138,6 @@ func New(params driverParameters) (storagedriver.StorageDriver, error) {
 		StorageDriver: d,
 	}, nil
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 //
 // Implement the storagedriver.StorageDriver interface
@@ -322,16 +292,6 @@ func (d *driver) URLFor(context context.Context, path string, options map[string
 	return "", storagedriver.ErrUnsupportedMethod{}
 }
 
-
-
-
-
-
-
-
-
-
-
 //
 // Implement the storagedriver.FileWriter interface
 //
@@ -401,31 +361,6 @@ func (w *fileWriter) Commit() error {
 	log.Print("IN Commit, File: " + w.filePath)
 	return nil
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 //
 // Utils
