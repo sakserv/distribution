@@ -151,7 +151,6 @@ func (d *driver) Name() string {
 // GetContent retrieves the content stored at "path" as a []byte.
 // This should primarily be used for small objects.
 func (d *driver) GetContent(context context.Context, path string) ([]byte, error) {
-	log.Print("IN GetContent, File: " + path)
 	fullPath := d.fullPath(path)
 	p, err := d.hdfsClient.ReadFile(fullPath)
 	if err != nil {
@@ -163,7 +162,6 @@ func (d *driver) GetContent(context context.Context, path string) ([]byte, error
 // PutContent stores the []byte content at a location designated by "path".
 // This should primarily be used for small objects.
 func (d *driver) PutContent(context context.Context, path string, contents[]byte) error {
-	log.Print("IN PutContent, File: " + path + " ContentSize: " + strconv.Itoa(len(contents)))
 	fullPath := d.fullPath(path)
 	d.makeParentDir(fullPath)
 
@@ -186,7 +184,6 @@ func (d *driver) PutContent(context context.Context, path string, contents[]byte
 // with a given byte offset.
 // May be used to resume reading a stream by providing a nonzero offset.
 func (d *driver) Reader(context context.Context, path string, offset int64) (io.ReadCloser, error) {
-	log.Print("IN Reader, File: " + path)
 	fullPath := d.fullPath(path)
 
 	// Open the file
@@ -211,24 +208,19 @@ func (d *driver) Reader(context context.Context, path string, offset int64) (io.
 // Writer returns a FileWriter which will store the content written to it
 // at the location designated by "path" after the call to Commit.
 func (d *driver) Writer(context context.Context, path string, append bool) (storagedriver.FileWriter, error) {
-	log.Print("IN Writer, File: " + path)
 	fullPath := d.fullPath(path)
 	d.makeParentDir(fullPath)
 
 	reader, err := d.hdfsClient.Open(fullPath)
 	if err != nil {
-		log.Print("File does not exist, File: " + fullPath)
 		hdfsWriter, _ := d.hdfsClient.Create(fullPath)
 		return newFileWriter(hdfsWriter, fullPath, 0), nil
 	} else {
 		if !append {
-			log.Print("File exists and is not append, removing, File: " + fullPath)
 			d.hdfsClient.Remove(fullPath)
 			hdfsWriter, _ := d.hdfsClient.Create(fullPath)
 			return newFileWriter(hdfsWriter, fullPath, 0), nil
 		} else {
-			log.Print("File exists and IS append, need to append:" + fullPath)
-			log.Print("Preappend size: " + strconv.Itoa(int(reader.Stat().Size())))
 			hdfsWriter, _ := d.hdfsClient.Append(fullPath)
 			return newFileWriter(hdfsWriter, fullPath, reader.Stat().Size()), nil
 		}
@@ -239,7 +231,6 @@ func (d *driver) Writer(context context.Context, path string, append bool) (stor
 // Stat retrieves the FileInfo for the given path, including the current
 // size in bytes and the creation time.
 func (d *driver) Stat(context context.Context, path string) (storagedriver.FileInfo, error) {
-	log.Print("IN Stat, File: " + path)
 	fi, err := d.hdfsClient.Stat(d.fullPath(path))
 	if err != nil {
 		return nil, storagedriver.PathNotFoundError{Path: d.fullPath(path)}
@@ -256,7 +247,6 @@ func (d *driver) Stat(context context.Context, path string) (storagedriver.FileI
 // List returns a list of the objects that are direct descendants of the
 //given path.
 func (d *driver) List(context context.Context, subPath string) ([]string, error) {
-	log.Print("IN List, File: " + subPath)
 	fileInfos, err := d.hdfsClient.ReadDir(d.fullPath(subPath))
 	if err != nil {
 		return make([]string, 0), nil
@@ -273,14 +263,12 @@ func (d *driver) List(context context.Context, subPath string) ([]string, error)
 // Move moves an object stored at sourcePath to destPath, removing the
 // original object.
 func (d *driver) Move(context context.Context, sourcePath string, destPathstring string) error {
-	log.Print("IN Move, File: " + sourcePath)
 	d.makeParentDir(d.fullPath(destPathstring))
 	return d.hdfsClient.Rename(d.fullPath(sourcePath), d.fullPath(destPathstring))
 }
 
 // Delete recursively deletes all objects stored at "path" and its subpaths.
 func (d *driver) Delete(context context.Context, path string) error {
-	log.Print("IN Delete, File: " + path)
 	//return nil
 	return d.hdfsClient.Remove(d.fullPath(path))
 }
@@ -288,7 +276,6 @@ func (d *driver) Delete(context context.Context, path string) error {
 // URLFor returns a URL which may be used to retrieve the content stored at
 // the given path, possibly using the given options.
 func (d *driver) URLFor(context context.Context, path string, options map[string]interface{}) (string, error) {
-	log.Print("IN URLFor, File: " + path)
 	return "", storagedriver.ErrUnsupportedMethod{}
 }
 
@@ -312,7 +299,6 @@ func newFileWriter(hdfsWriter *hdfs.FileWriter, filePath string, startingFileSiz
 }
 
 func (w *fileWriter) Write(p []byte) (int, error) {
-	log.Print("IN Write, File: " + w.filePath)
 	w.Size()
 	if _, err := w.hdfsWriter.Write(p); err != nil {
 		log.Print(err)
@@ -324,7 +310,6 @@ func (w *fileWriter) Write(p []byte) (int, error) {
 
 // Close the client connection
 func (w *fileWriter) Close() error {
-	log.Print("IN Close, File: " + w.filePath)
 	w.Size()
 	if w.hdfsWriter != nil {
 		if !w.isClosed {
@@ -344,13 +329,11 @@ func (w *fileWriter) Size() int64 {
 		w.writeSize += w.startingFileSize
 		w.startingFileSize = 0
 	}
-	log.Print("IN Size, File: " + w.filePath + " Size: " + strconv.Itoa(int(w.writeSize)))
 	return w.writeSize
 }
 
 // Cancel removes any written content from this FileWriter.
 func (w *fileWriter) Cancel() error {
-	log.Print("IN Cancel, File: " + w.filePath)
 	return nil
 }
 
@@ -358,7 +341,6 @@ func (w *fileWriter) Cancel() error {
 // available for future calls to StorageDriver.GetContent and
 // StorageDriver.Reader.
 func (w *fileWriter) Commit() error {
-	log.Print("IN Commit, File: " + w.filePath)
 	return nil
 }
 
